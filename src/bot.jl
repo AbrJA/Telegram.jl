@@ -42,6 +42,8 @@ function run_bot(f, tg::TelegramClient = DEFAULT_OPTS.client; timeout = 20, brut
                 end
             end
         catch err
+            println("Entró al error")
+            println(err)
             if err isa InterruptException
                 println("Deteniendo bot...")
                 STOP[] = true  # Detiene el bot cuando se recibe Ctrl + C
