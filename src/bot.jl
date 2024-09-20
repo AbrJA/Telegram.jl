@@ -1,5 +1,6 @@
+const STOP = Ref(false)
 """
-    run_bot(f::Function, [tg::TelegramClient]; timeout = 10, brute_force_alive = false, offset = -1)
+    run_bot(f::Function, [tg::TelegramClient]; timeout = 20, brute_force_alive = false, offset = -1)
 
 Run telegram bot, which executes function `f` repeatedly.
 
@@ -23,10 +24,10 @@ function run_bot(f, tg::TelegramClient = DEFAULT_OPTS.client; timeout = 20, brut
         end
     end
 
-    while true
+    while !STOP[]
         try
             ignore_errors = true
-            res = offset == -1 ? getUpdates(tg, timeout = timeout) : (ignore_errors = false;getUpdates(tg, timeout = timeout, offset = offset) )
+            res = offset == -1 ? getUpdates(tg, timeout = timeout) : (ignore_errors = false; getUpdates(tg, timeout = timeout, offset = offset))
             for msg in res
                 try
                     f(msg)
@@ -41,9 +42,11 @@ function run_bot(f, tg::TelegramClient = DEFAULT_OPTS.client; timeout = 20, brut
                 end
             end
         catch err
-            @error err
             if err isa InterruptException
-                break
+                println("Deteniendo bot...")
+                STOP[] = true  # Detiene el bot cuando se recibe Ctrl + C
+            else
+                @error err
             end
         end
     end
